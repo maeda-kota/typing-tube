@@ -7,7 +7,13 @@ import { newId, saveChart } from './storage';
 import type { Chart, ChartLine } from './types';
 import { createYouTubeClock, parseVideoId, type Clock } from './youtube';
 
-export function showEditor(root: HTMLElement, original: Chart | null, onExit: () => void): void {
+// 曲リストから開いたときに、LRCLIB の検索欄へ入れる値。artists は先頭から順に試す。
+export interface SearchHint {
+  track: string;
+  artists: string[];
+}
+
+export function showEditor(root: HTMLElement, original: Chart | null, onExit: () => void, hint?: SearchHint): void {
   const chart: Chart = original
     ? structuredClone(original)
     : { id: newId(), title: '', videoId: '', offset: 0, lines: [] };
@@ -124,14 +130,20 @@ export function showEditor(root: HTMLElement, original: Chart | null, onExit: ()
   };
 
   // LRCLIB 検索
-  const trackInput = h('input', { type: 'text', placeholder: '曲名' });
-  const artistInput = h('input', { type: 'text', placeholder: 'アーティスト名' });
+  const trackInput = h('input', { type: 'text', placeholder: '曲名', value: hint?.track ?? '' });
+  const artistInput = h('input', { type: 'text', placeholder: 'アーティスト名', value: hint?.artists[0] ?? '' });
   const results = h('ul', { class: 'results' });
   const search = async () => {
     setStatus('LRCLIB を検索しています...');
     results.replaceChildren();
     try {
-      const list = await searchLrclib(trackInput.value.trim(), artistInput.value.trim());
+      // アーティスト名は、入力欄の値のあと曲リストの別表記も順に試す
+      const artists = [artistInput.value.trim(), ...(hint?.artists ?? [])].filter((a, i, xs) => xs.indexOf(a) === i);
+      let list: LrclibTrack[] = [];
+      for (const artist of artists) {
+        list = await searchLrclib(trackInput.value.trim(), artist);
+        if (list.length > 0) break;
+      }
       if (list.length === 0) return setStatus('同期歌詞のある曲が見つかりませんでした。LRC の貼り付けも使えます');
       setStatus(`${list.length} 件見つかりました。使う曲を選んでください`);
       results.replaceChildren(...list.map((t: LrclibTrack) =>
@@ -211,4 +223,7 @@ export function showEditor(root: HTMLElement, original: Chart | null, onExit: ()
     ),
   );
   renderLines();
+  // 曲リストから開いたときは、動画の読み込みと LRCLIB の検索をすぐに始める
+  // 状態表示を検索結果で終えるため、動画を読み込んでから検索する
+  if (hint) void loadVideo().then(search);
 }

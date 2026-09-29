@@ -3,9 +3,62 @@ import './style.css';
 import { h } from './dom';
 import { showEditor } from './editor';
 import { showPlay } from './play';
-import { deleteChart, downloadChart, loadCharts, parseChartJson, saveChart } from './storage';
+import { deleteChart, downloadChart, loadCharts, newId, parseChartJson, saveChart } from './storage';
 
 const root = document.querySelector<HTMLElement>('#app')!;
+
+// 曲リストの1曲。歌詞は持たず、遊ぶ前にブラウザが LRCLIB から取得する。
+interface CatalogSong {
+  title: string;
+  artists: string[];
+  videoId: string;
+  kind: string;
+}
+
+let catalog: CatalogSong[] | null = null;
+
+async function loadCatalog(): Promise<CatalogSong[]> {
+  if (catalog) return catalog;
+  try {
+    const res = await fetch(`${import.meta.env.BASE_URL}catalog.json`);
+    catalog = ((await res.json()) as { songs: CatalogSong[] }).songs;
+  } catch {
+    catalog = [];
+  }
+  return catalog;
+}
+
+function catalogSection(): HTMLElement {
+  const list = h('ul', { class: 'charts' }, h('li', {}, '読み込み中...'));
+  void loadCatalog().then((songs) => {
+    const charts = loadCharts();
+    list.replaceChildren(
+      ...songs.map((s) => {
+        const saved = charts.find((c) => c.videoId === s.videoId);
+        return h('li', {},
+          h('span', { class: 'chart-title' }, `${s.title}`, h('span', { class: 'hint' }, ` ${s.artists[0]} / ${s.kind}`)),
+          saved
+            ? h('button', { class: 'primary', onclick: () => showPlay(root, saved, showList) }, '遊ぶ')
+            : h('button', {
+                onclick: () =>
+                  showEditor(
+                    root,
+                    { id: newId(), title: `${s.title} / ${s.artists[0]}`, videoId: s.videoId, offset: 0, lines: [] },
+                    showList,
+                    { track: s.title, artists: s.artists },
+                  ),
+              }, '歌詞を取得して準備'),
+        );
+      }),
+    );
+  });
+  return h('details', { class: 'catalog' },
+    h('summary', {}, '曲リスト (新しい学校のリーダーズ)'),
+    h('p', { class: 'hint' },
+      '歌詞はこのサイトには含まれていません。「歌詞を取得して準備」を押すと、ブラウザが LRCLIB から同期歌詞を探し、選んだ歌詞でこのブラウザの中に譜面を作ります。'),
+    list,
+  );
+}
 
 async function addSample(): Promise<void> {
   const res = await fetch(`${import.meta.env.BASE_URL}samples/sample.json`);
@@ -42,6 +95,8 @@ function showList(): void {
         h('button', { onclick: importJson }, 'JSON を読み込む'),
         h('button', { onclick: addSample }, 'サンプルを追加'),
       ),
+      catalogSection(),
+      h('h2', {}, '保存した譜面'),
       charts.length === 0
         ? h('p', {}, '譜面がまだありません。')
         : h('ul', { class: 'charts' },

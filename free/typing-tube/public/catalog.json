@@ -1,0 +1,28 @@
+{
+  "note": "曲名と YouTube の動画 ID だけの一覧。歌詞は含めず、遊ぶ人のブラウザが LRCLIB から取得する。",
+  "songs": [
+    { "title": "毒花", "artists": ["新しい学校のリーダーズ", "ATARASHII GAKKO!"], "videoId": "QpsHSe6BFbM", "kind": "MV" },
+    { "title": "最終人類", "artists": ["新しい学校のリーダーズ", "ATARASHII GAKKO!"], "videoId": "-b6HEls-698", "kind": "MV" },
+    { "title": "恋ゲバ", "artists": ["新しい学校のリーダーズ", "ATARASHII GAKKO!"], "videoId": "ye5v9mOkDh8", "kind": "MV" },
+    { "title": "迷えば尊し", "artists": ["新しい学校のリーダーズ", "ATARASHII GAKKO!"], "videoId": "4lZIlLun_Ro", "kind": "MV" },
+    { "title": "恋の遮断機", "artists": ["新しい学校のリーダーズ", "ATARASHII GAKKO!"], "videoId": "k18g-12B9h4", "kind": "MV" },
+    { "title": "学校行けやあ゛", "artists": ["新しい学校のリーダーズ", "ATARASHII GAKKO!"], "videoId": "-ynORyhh1jY", "kind": "その他" },
+    { "title": "NAINAINAI", "artists": ["ATARASHII GAKKO!", "新しい学校のリーダーズ"], "videoId": "4qWc_6u4V9M", "kind": "MV" },
+    { "title": "オトナブルー", "artists": ["新しい学校のリーダーズ", "ATARASHII GAKKO!"], "videoId": "l446hUqQ7GY", "kind": "MV" },
+    { "title": "HANAKO", "artists": ["ATARASHII GAKKO!", "新しい学校のリーダーズ"], "videoId": "IXfnrInr4xQ", "kind": "MV" },
+    { "title": "青春を切り裂く波動", "artists": ["新しい学校のリーダーズ", "ATARASHII GAKKO!"], "videoId": "XMXXL8ka7eU", "kind": "その他" },
+    { "title": "Tokyo Calling", "artists": ["ATARASHII GAKKO!", "新しい学校のリーダーズ"], "videoId": "pHMH408ltEM", "kind": "MV" },
+    { "title": "Toryanse", "artists": ["ATARASHII GAKKO!", "新しい学校のリーダーズ"], "videoId": "pwSzPtqyESI", "kind": "MV" },
+    { "title": "GHOSTBUSTERS: FROZEN SUMMER", "artists": ["ATARASHII GAKKO!", "新しい学校のリーダーズ"], "videoId": "WjjGVqVPS_Q", "kind": "MV" },
+    { "title": "Pineapple Kryptonite", "artists": ["ATARASHII GAKKO!", "新しい学校のリーダーズ"], "videoId": "YD8VNZwN1mM", "kind": "MV" },
+    { "title": "Suki Lie", "artists": ["ATARASHII GAKKO!", "新しい学校のリーダーズ"], "videoId": "e0SZ28FP3RI", "kind": "MV" },
+    { "title": "Fly High", "artists": ["ATARASHII GAKKO!", "新しい学校のリーダーズ"], "videoId": "CIv-d_366z0", "kind": "MV" },
+    { "title": "Change", "artists": ["ATARASHII GAKKO!", "新しい学校のリーダーズ"], "videoId": "d3v0QqZlCes", "kind": "MV" },
+    { "title": "Omakase", "artists": ["ATARASHII GAKKO!", "新しい学校のリーダーズ"], "videoId": "Rcz4rCBO0ms", "kind": "MV" },
+    { "title": "Giri Giri", "artists": ["ATARASHII GAKKO!", "新しい学校のリーダーズ"], "videoId": "bJx1hntfzOI", "kind": "その他" },
+    { "title": "One Heart", "artists": ["新しい学校のリーダーズ", "ATARASHII GAKKO!"], "videoId": "Ie90LB-7nkA", "kind": "MV" },
+    { "title": "Oi AG!", "artists": ["ATARASHII GAKKO!", "新しい学校のリーダーズ"], "videoId": "J0jwy5qEQwI", "kind": "MV" },
+    { "title": "TTTTOKYO", "artists": ["ATARASHII GAKKO!", "新しい学校のリーダーズ"], "videoId": "JlRoa2GtarQ", "kind": "MV" },
+    { "title": "Sweet Memories", "artists": ["新しい学校のリーダーズ", "ATARASHII GAKKO!", "アイナ・ジ・エンド"], "videoId": "mMZMUZyjNxI", "kind": "MV" }
+  ]
+}
