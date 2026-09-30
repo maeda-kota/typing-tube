@@ -23,7 +23,7 @@
     { "title": "One Heart", "artists": ["新しい学校のリーダーズ", "ATARASHII GAKKO!"], "videoId": "Ie90LB-7nkA", "kind": "MV" },
     { "title": "Oi AG!", "artists": ["ATARASHII GAKKO!", "新しい学校のリーダーズ"], "videoId": "J0jwy5qEQwI", "kind": "MV" },
     { "title": "TTTTOKYO", "artists": ["ATARASHII GAKKO!", "新しい学校のリーダーズ"], "videoId": "JlRoa2GtarQ", "kind": "MV" },
-    { "title": "Sweet Memories", "artists": ["新しい学校のリーダーズ", "ATARASHII GAKKO!", "アイナ・ジ・エンド"], "videoId": "mMZMUZyjNxI", "kind": "MV" },
+    { "title": "Sweet Memories", "artists": ["新しい学校のリーダーズ", "ATARASHII GAKKO!", "アイナ・ジ・エンド"], "videoId": "mMZMUZyjNxI", "kind": "MV", "rules": { "removeParens": true, "shift": -0.3, "minSeconds": 4 } },
     { "title": "狼の詩", "artists": ["新しい学校のリーダーズ", "ATARASHII GAKKO!"], "videoId": "-_k8AYBb4Ng", "kind": "MV" },
     { "title": "恋文", "artists": ["新しい学校のリーダーズ", "ATARASHII GAKKO!"], "videoId": "eihDjiWEX10", "kind": "ライブ" },
     { "title": "Free Your Mind", "artists": ["ATARASHII GAKKO!", "新しい学校のリーダーズ"], "videoId": "5sIIOnXJVrw", "kind": "MV" },

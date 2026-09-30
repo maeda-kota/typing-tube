@@ -4,6 +4,7 @@ import { h } from './dom';
 import { showEditor } from './editor';
 import { showPlay } from './play';
 import { deleteChart, downloadChart, loadCharts, newId, parseChartJson, saveChart } from './storage';
+import type { ImportRules } from './transform';
 
 const root = document.querySelector<HTMLElement>('#app')!;
 
@@ -13,6 +14,7 @@ interface CatalogSong {
   artists: string[];
   videoId: string;
   kind: string;
+  rules?: ImportRules; // LRC を取り込んだときに自動でかける整形
 }
 
 let catalog: CatalogSong[] | null = null;
@@ -45,7 +47,7 @@ function catalogSection(): HTMLElement {
                     root,
                     { id: newId(), title: `${s.title} / ${s.artists[0]}`, videoId: s.videoId, offset: 0, lines: [] },
                     showList,
-                    { track: s.title, artists: s.artists },
+                    { track: s.title, artists: s.artists, rules: s.rules },
                   ),
               }, '歌詞を取得して準備'),
         );

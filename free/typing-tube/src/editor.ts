@@ -4,6 +4,7 @@ import { toHiragana } from './kana';
 import { parseLrc } from './lrc';
 import { searchLrclib, type LrclibTrack } from './lrclib';
 import { newId, saveChart } from './storage';
+import { applyRules, mergeShortLines, removeParensFromLines, shiftLines, type ImportRules } from './transform';
 import type { Chart, ChartLine } from './types';
 import { createYouTubeClock, parseVideoId, type Clock } from './youtube';
 
@@ -11,6 +12,7 @@ import { createYouTubeClock, parseVideoId, type Clock } from './youtube';
 export interface SearchHint {
   track: string;
   artists: string[];
+  rules?: ImportRules; // LRC を取り込んだときに自動でかける整形
 }
 
 export function showEditor(root: HTMLElement, original: Chart | null, onExit: () => void, hint?: SearchHint): void {
@@ -124,10 +126,39 @@ export function showEditor(root: HTMLElement, original: Chart | null, onExit: ()
   const importLrc = async (lrc: string) => {
     const lines = parseLrc(lrc);
     if (lines.length === 0) return setStatus('時刻付きの行が見つかりませんでした');
-    chart.lines = lines.map((l) => ({ time: l.time, lyric: l.text, kana: '' }));
+    const rules = hint?.rules ?? {};
+    // カッコの削除と時刻のずらしは読みの変換前に、結合は読みができてから行う
+    chart.lines = applyRules(
+      lines.map((l) => ({ time: l.time, lyric: l.text, kana: '' })),
+      { removeParens: rules.removeParens, shift: rules.shift },
+    );
     renderLines();
     await convertAll(true);
+    if (rules.minSeconds) {
+      chart.lines = mergeShortLines(chart.lines, rules.minSeconds);
+      renderLines();
+    }
   };
+
+  // 保存済みの譜面にも同じ整形をかけられるボタン
+  const transformButtons = h('div', { class: 'inline' },
+    h('button', { onclick: () => {
+      chart.lines = removeParensFromLines(chart.lines);
+      renderLines();
+      setStatus('カッコ内を削除しました');
+    } }, 'カッコ内を削除'),
+    h('button', { onclick: () => {
+      chart.lines = shiftLines(chart.lines, -0.3);
+      renderLines();
+      setStatus('全行の時刻を 0.3 秒早めました');
+    } }, '全行を -0.3 秒'),
+    h('button', { onclick: () => {
+      const before = chart.lines.length;
+      chart.lines = mergeShortLines(chart.lines, 4);
+      renderLines();
+      setStatus(`4 秒未満の行を結合しました (${before} 行 → ${chart.lines.length} 行)`);
+    } }, '4 秒未満の行を結合'),
+  );
 
   // LRCLIB 検索
   const trackInput = h('input', { type: 'text', placeholder: '曲名', value: hint?.track ?? '' });
@@ -204,6 +235,7 @@ export function showEditor(root: HTMLElement, original: Chart | null, onExit: ()
         ),
       ),
       status,
+      transformButtons,
       h('div', { class: 'inline' },
         h('button', { onclick: () => convertAll(false) }, 'ひらがなを全部作り直す'),
         h('button', { onclick: () => {
