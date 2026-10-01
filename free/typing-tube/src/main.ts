@@ -1,5 +1,6 @@
 // 曲選択画面と画面の切り替え。
 import './style.css';
+import { buildChart, cloudEnabled, listSharedCharts } from './cloud';
 import { h } from './dom';
 import { showEditor } from './editor';
 import { showPlay } from './play';
@@ -28,6 +29,44 @@ async function loadCatalog(): Promise<CatalogSong[]> {
     catalog = [];
   }
   return catalog;
+}
+
+// みんなが共有した譜面。共有されているのは時刻などだけで、歌詞は遊ぶ前に LRCLIB から取得して組み立てる。
+function sharedSection(): HTMLElement {
+  const status = h('p', { class: 'status' });
+  const list = h('ul', { class: 'charts' }, h('li', {}, '読み込み中...'));
+  void listSharedCharts()
+    .then((shared) => {
+      const charts = loadCharts();
+      if (shared.length === 0) return list.replaceChildren(h('li', {}, 'まだ共有された譜面はありません。'));
+      list.replaceChildren(
+        ...shared.map((s) => {
+          const local = charts.find((c) => c.sharedId === s.id);
+          const play = async () => {
+            if (local) return showPlay(root, local, showList);
+            status.textContent = `「${s.title}」の歌詞を LRCLIB から取得して準備しています。初回は辞書の読み込みに時間がかかります...`;
+            try {
+              const chart = await buildChart(s, newId);
+              saveChart(chart);
+              showPlay(root, chart, showList);
+            } catch (err) {
+              status.textContent = `準備できませんでした: ${(err as Error).message}`;
+            }
+          };
+          return h('li', {},
+            h('span', { class: 'chart-title' }, s.title),
+            h('button', { class: 'primary', onclick: play }, '遊ぶ'),
+          );
+        }),
+      );
+    })
+    .catch((err: Error) => list.replaceChildren(h('li', {}, `読み込めませんでした: ${err.message}`)));
+  return h('details', { class: 'catalog', open: true },
+    h('summary', {}, 'みんなの譜面'),
+    h('p', { class: 'hint' }, 'ほかの人が時刻を調整して共有した譜面です。歌詞はこのサイトには含まれず、遊ぶときにブラウザが LRCLIB から取得します。'),
+    status,
+    list,
+  );
 }
 
 function catalogSection(): HTMLElement {
@@ -97,6 +136,7 @@ function showList(): void {
         h('button', { onclick: importJson }, 'JSON を読み込む'),
         h('button', { onclick: addSample }, 'サンプルを追加'),
       ),
+      cloudEnabled && sharedSection(),
       catalogSection(),
       h('h2', {}, '保存した譜面'),
       charts.length === 0

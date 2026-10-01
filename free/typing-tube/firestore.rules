@@ -1,0 +1,45 @@
+rules_version = '2';
+
+// みんなの譜面 (charts) と成績 (scores) のルール。
+// 読み取りは誰でもでき、書き込みは匿名ログイン済みの人だけができる。
+// 歌詞を置けないよう、文字列は曲名・動画 ID・ニックネームだけに絞り、長さも制限する。
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isChart(d) {
+      return d.keys().hasOnly(['title', 'videoId', 'lrclibId', 'offset', 'rules', 'times', 'uid', 'updatedAt'])
+        && d.title is string && d.title.size() <= 100
+        && d.videoId is string && d.videoId.size() <= 11
+        && d.lrclibId is int
+        && d.offset is number
+        && d.rules is map
+        && d.rules.keys().hasOnly(['removeParens', 'shift', 'minSeconds'])
+        && d.times is list && d.times.size() <= 500
+        && d.uid == request.auth.uid
+        && d.updatedAt == request.time;
+    }
+
+    match /charts/{id} {
+      allow read: if true;
+      allow create: if request.auth != null && isChart(request.resource.data);
+      // 上書きと削除は、共有した本人だけ
+      allow update: if request.auth != null && resource.data.uid == request.auth.uid && isChart(request.resource.data);
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+
+    match /scores/{id} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['chartId', 'nickname', 'keys', 'misses', 'kps', 'accuracy', 'uid', 'createdAt'])
+        && request.resource.data.chartId is string && request.resource.data.chartId.size() <= 40
+        && request.resource.data.nickname is string && request.resource.data.nickname.size() >= 1 && request.resource.data.nickname.size() <= 20
+        && request.resource.data.keys is int && request.resource.data.misses is int
+        && request.resource.data.kps is number && request.resource.data.kps >= 0 && request.resource.data.kps < 30
+        && request.resource.data.accuracy is number
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.createdAt == request.time;
+      // 成績は書き換えも削除もできない
+      allow update, delete: if false;
+    }
+  }
+}

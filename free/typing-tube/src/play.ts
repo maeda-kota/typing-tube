@@ -1,4 +1,5 @@
 // プレイ画面と結果画面。
+import { cloudEnabled, listScores, submitScore } from './cloud';
 import { h } from './dom';
 import { Game, type Result } from './game';
 import type { Chart } from './types';
@@ -137,6 +138,67 @@ function showResult(root: HTMLElement, chart: Chart, r: Result, onExit: () => vo
         h('button', { onclick: () => showPlay(root, chart, onExit) }, 'もう一度'),
         h('button', { onclick: onExit }, '曲選択へ戻る'),
       ),
+      cloudEnabled && chart.sharedId ? rankingSection(chart.sharedId, r) : null,
     ),
+  );
+}
+
+const NICKNAME_KEY = 'typing-tube:nickname';
+
+// 共有された譜面のときだけ、成績の登録とランキングを出す
+function rankingSection(chartId: string, r: Result): HTMLElement {
+  let saved = '';
+  try {
+    saved = localStorage.getItem(NICKNAME_KEY) ?? '';
+  } catch {
+    // 保存できない環境では毎回入力してもらう
+  }
+  const nickname = h('input', { type: 'text', value: saved, placeholder: 'ニックネーム (20 文字まで)', maxLength: 20 });
+  const status = h('p', { class: 'status' });
+  const table = h('tbody');
+  const load = async () => {
+    try {
+      const scores = await listScores(chartId);
+      table.replaceChildren(
+        ...scores.map((s, i) =>
+          h('tr', {},
+            h('td', {}, `${i + 1}`),
+            h('td', {}, s.nickname),
+            h('td', {}, `${s.kps.toFixed(2)} 打/秒`),
+            h('td', {}, `ミス ${s.misses}`),
+            h('td', {}, `${s.accuracy.toFixed(1)} %`),
+          ),
+        ),
+      );
+      if (scores.length === 0) status.textContent = 'まだ成績がありません';
+    } catch (err) {
+      status.textContent = `ランキングを読み込めませんでした: ${(err as Error).message}`;
+    }
+  };
+  const submit = async () => {
+    const name = nickname.value.trim();
+    if (!name) return (status.textContent = 'ニックネームを入れてください');
+    try {
+      localStorage.setItem(NICKNAME_KEY, name);
+    } catch {
+      // 保存できなくても登録は続ける
+    }
+    button.disabled = true;
+    try {
+      await submitScore(chartId, name, r);
+      status.textContent = '登録しました';
+      await load();
+    } catch (err) {
+      button.disabled = false;
+      status.textContent = `登録できませんでした: ${(err as Error).message}`;
+    }
+  };
+  const button = h('button', { class: 'primary', onclick: submit }, 'ランキングに登録');
+  void load();
+  return h('section', { class: 'ranking' },
+    h('h3', {}, 'ランキング (速度順)'),
+    h('div', { class: 'inline' }, nickname, button),
+    status,
+    h('table', {}, table),
   );
 }

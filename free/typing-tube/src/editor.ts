@@ -1,4 +1,5 @@
 // 譜面作成画面。LRC を取り込み、ひらがなとタイミングを直して保存する。
+import { cloudEnabled, shareChart } from './cloud';
 import { formatTime, h } from './dom';
 import { toHiragana } from './kana';
 import { parseLrc } from './lrc';
@@ -182,6 +183,9 @@ export function showEditor(root: HTMLElement, original: Chart | null, onExit: ()
           onclick: () => {
             if (!chart.title) titleInput.value = chart.title = `${t.trackName} / ${t.artistName}`;
             results.replaceChildren();
+            // 共有するときは歌詞ではなくこの ID と整形ルールを送る
+            chart.lrclibId = t.id;
+            chart.rules = hint?.rules;
             void importLrc(t.syncedLyrics ?? '');
           },
         }, `${t.artistName} - ${t.trackName} (${t.albumName}, ${formatTime(t.duration)})`)),
@@ -205,6 +209,21 @@ export function showEditor(root: HTMLElement, original: Chart | null, onExit: ()
     if (chart.lines.length === 0) return setStatus('行が1つもありません');
     saveChart(chart);
     leave();
+  };
+
+  // みんなの譜面に、曲名・動画 ID・LRCLIB の ID・時刻だけを共有する
+  const share = async () => {
+    chart.title = titleInput.value.trim() || '無題';
+    chart.videoId = parseVideoId(urlInput.value);
+    chart.lines.sort((a, b) => a.time - b.time);
+    setStatus('共有しています...');
+    try {
+      chart.sharedId = await shareChart(chart);
+      saveChart(chart);
+      setStatus('みんなの譜面に共有しました。歌詞とひらがなは共有されず、遊ぶ人のブラウザが LRCLIB から取得します');
+    } catch (err) {
+      setStatus(`共有できませんでした: ${(err as Error).message}`);
+    }
   };
 
   root.replaceChildren(
@@ -250,6 +269,7 @@ export function showEditor(root: HTMLElement, original: Chart | null, onExit: ()
       h('p', { class: 'hint' }, 'ひらがなが空の行は間奏として扱い、入力しません。曲の終わりには空の行を置いてください。'),
       h('div', { class: 'buttons' },
         h('button', { class: 'primary', onclick: save }, '保存'),
+        cloudEnabled && h('button', { onclick: share, title: 'LRCLIB から取り込んだ譜面だけ共有できます' }, 'みんなに共有'),
         h('button', { onclick: leave }, 'やめる'),
       ),
     ),

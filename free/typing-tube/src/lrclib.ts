@@ -18,3 +18,10 @@ export async function searchLrclib(track: string, artist: string): Promise<Lrcli
   const list = (await res.json()) as LrclibTrack[];
   return list.filter((t) => t.syncedLyrics);
 }
+
+// ID を指定して1曲取得する。共有された譜面を組み立てるときに使う。
+export async function getLrclib(id: number): Promise<LrclibTrack> {
+  const res = await fetch(`https://lrclib.net/api/get/${id}`);
+  if (!res.ok) throw new Error(`LRCLIB から歌詞を取得できませんでした (${res.status})`);
+  return (await res.json()) as LrclibTrack;
+}
