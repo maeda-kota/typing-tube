@@ -141,6 +141,8 @@ export function showEditor(root: HTMLElement, original: Chart | null, onExit: ()
     }
   };
 
+  const shiftInput = h('input', { type: 'number', step: '0.1', value: '0', class: 'time', title: '秒。マイナスで早く、プラスで遅くなる' });
+
   // 保存済みの譜面にも同じ整形をかけられるボタン
   const transformButtons = h('div', { class: 'inline' },
     h('button', { onclick: () => {
@@ -153,6 +155,18 @@ export function showEditor(root: HTMLElement, original: Chart | null, onExit: ()
       renderLines();
       setStatus('全行の時刻を 0.3 秒早めました');
     } }, '全行を -0.3 秒'),
+    // 任意の秒数ずらす。マイナスで早く、プラスで遅くなる
+    shiftInput,
+    h('button', { onclick: () => {
+      const sec = Number(shiftInput.value);
+      if (!Number.isFinite(sec) || sec === 0) return setStatus('ずらす秒数を 0 以外の数で入れてください (例: -1.5、0.25)');
+      // 0 秒より前になる行が出ると複数の行が 0 秒に重なり元に戻せないので、実行しない
+      const first = Math.min(...chart.lines.map((l) => l.time));
+      if (first + sec < 0) return setStatus(`最初の行が 0 秒より前になるため、ずらせません。早められるのは ${first.toFixed(2)} 秒までです`);
+      chart.lines = shiftLines(chart.lines, sec);
+      renderLines();
+      setStatus(`全行の時刻を ${Math.abs(sec)} 秒${sec < 0 ? '早め' : '遅らせ'}ました`);
+    } }, '全行をこの秒数ずらす'),
     h('button', { onclick: () => {
       const before = chart.lines.length;
       chart.lines = mergeShortLines(chart.lines, 4);
