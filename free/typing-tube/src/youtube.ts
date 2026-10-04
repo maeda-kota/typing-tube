@@ -4,6 +4,7 @@ export interface Clock {
   play(): void;
   pause(): void;
   time(): number; // 秒
+  seek(t: number): void; // 秒
   ended(): boolean;
   destroy(): void;
 }
@@ -83,6 +84,7 @@ export async function createYouTubeClock(
     play: () => player.playVideo(),
     pause: () => player.pauseVideo(),
     time: () => player.getCurrentTime() ?? 0,
+    seek: (t: number) => player.seekTo(t, true),
     ended: () => ended,
     destroy: () => player.destroy(),
   };
@@ -101,6 +103,10 @@ export function createTimerClock(): Clock {
       startedAt = null;
     },
     time: () => base + (startedAt === null ? 0 : (performance.now() - startedAt) / 1000),
+    seek(t: number) {
+      base = t;
+      if (startedAt !== null) startedAt = performance.now();
+    },
     ended: () => false,
     destroy() {},
   };

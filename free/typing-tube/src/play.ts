@@ -15,13 +15,14 @@ export function showPlay(root: HTMLElement, chart: Chart, onExit: () => void): v
   const bar = h('div', { class: 'bar-fill' });
   const next = h('div', { class: 'next' });
   const stats = h('div', { class: 'stats' });
+  const skipHint = h('div', { class: 'skip-hint' });
 
   root.replaceChildren(
     h('section', { class: 'play' },
       h('div', { class: 'play-head' }, h('h2', {}, chart.title), h('span', { class: 'hint' }, 'Esc で中断')),
       video,
       message,
-      h('div', { class: 'board' }, lyric, kana, romaji, h('div', { class: 'bar' }, bar), next),
+      h('div', { class: 'board' }, lyric, kana, romaji, h('div', { class: 'bar' }, bar), next, skipHint),
       stats,
     ),
   );
@@ -59,6 +60,7 @@ export function showPlay(root: HTMLElement, chart: Chart, onExit: () => void): v
     }
     next.textContent = game.nextLine ? `次: ${game.nextLine.lyric}` : '';
     stats.textContent = `打鍵 ${game.keys}  ミス ${game.misses}`;
+    skipHint.textContent = started && game.skipTarget(t) !== null ? 'Enter で次の歌詞まで飛ばす' : '';
   };
 
   const finish = () => {
@@ -90,6 +92,17 @@ export function showPlay(root: HTMLElement, chart: Chart, onExit: () => void): v
         message.textContent = '';
         clock.play();
         raf = requestAnimationFrame(loop);
+      }
+      return;
+    }
+    if (e.key === 'Enter') {
+      // 打ち終えたあとや間奏中なら、次に打つ行の少し前まで動画と表示を飛ばす
+      e.preventDefault();
+      const target = game.skipTarget(clock.time());
+      if (target !== null) {
+        clock.seek(target);
+        game.update(target);
+        render(target);
       }
       return;
     }

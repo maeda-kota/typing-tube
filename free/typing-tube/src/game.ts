@@ -5,6 +5,9 @@ import type { Chart } from './types';
 // 最後の行の後ろに間奏行がないときに、最後の行へ与える時間(秒)。
 const LAST_LINE_SECONDS = 8;
 
+// Enter で飛ぶとき、次の行の開始より何秒前に着地するか。動画の読み込み待ちで出だしを逃さないため。
+const SKIP_LEAD_SECONDS = 1;
+
 export interface GameLine {
   start: number;
   end: number;
@@ -56,6 +59,16 @@ export class Game {
   get nextLine(): GameLine | null {
     for (let i = this.current + 1; i < this.lines.length; i++) if (this.lines[i].matcher) return this.lines[i];
     return null;
+  }
+
+  // Enter で飛ぶ先の時刻。入力中の行があるときは null。
+  // 次に打つ行の開始の lead 秒前に飛ぶ(今より前には戻さない)。次がなければ曲の終わりに飛ぶ。
+  skipTarget(t: number, lead = SKIP_LEAD_SECONDS): number | null {
+    if (this.lineActive) return null;
+    const next = this.nextLine;
+    if (!next) return this.endTime;
+    const target = Math.max(t, next.start - lead);
+    return target > t ? target : null;
   }
 
   // 再生時刻 t に合わせて今の行を進める。曲が終わったら true を返す。
