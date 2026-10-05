@@ -33,7 +33,8 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['chartId', 'nickname', 'keys', 'misses', 'kps', 'accuracy', 'uid', 'createdAt'])
         && request.resource.data.chartId is string && request.resource.data.chartId.size() <= 40
         && request.resource.data.nickname is string && request.resource.data.nickname.size() >= 1 && request.resource.data.nickname.size() <= 20
-        && request.resource.data.keys is int && request.resource.data.misses is int
+        // keys はマップの組み込み関数名とぶつかるので、角かっこで読む
+        && request.resource.data['keys'] is int && request.resource.data.misses is int
         && request.resource.data.kps is number && request.resource.data.kps >= 0 && request.resource.data.kps < 30
         && request.resource.data.accuracy is number
         && request.resource.data.uid == request.auth.uid

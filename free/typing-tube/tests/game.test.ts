@@ -61,6 +61,42 @@ describe('Game', () => {
     expect(g.skipTarget(7.9)).toBe(11); // 次がなければ曲の終わり
   });
 
+  it('Backspace で前の行に戻り、戻った行の成績を消して打ち直せる', () => {
+    const g = new Game(chart);
+    g.update(1);
+    g.key('a', 1.2);
+    g.key('x', 1.3); // ミス
+    g.key('o', 2); // 1 行目を打ち終える
+    expect(g.backTarget()).toBe(0); // 1 行目 (1 秒開始) の 1 秒前
+    expect(g.skipTarget(2)).toBe(6);
+
+    g.update(6.5); // 2 行目の手前まで進む
+    expect(g.backTarget()).toBe(0); // まだ 2 行目が始まっていないので 1 行目へ戻る
+
+    g.rewind(0);
+    expect(g.current).toBe(-1);
+    expect(g.keys).toBe(0);
+    expect(g.misses).toBe(0);
+    expect(g.backTarget()).toBeNull(); // それより前に戻る行はない
+
+    g.update(1);
+    g.key('a', 1.5);
+    g.key('o', 2.5);
+    g.update(12);
+    const r = g.result();
+    expect(r.keys).toBe(2);
+    expect(r.misses).toBe(0);
+    expect(r.typingSeconds).toBe(1.5 + 4);
+    expect(r.clearedLines).toBe(1);
+  });
+
+  it('入力中は Backspace で戻らない', () => {
+    const g = new Game(chart);
+    g.update(1);
+    g.key('a', 1.2);
+    expect(g.backTarget()).toBeNull();
+  });
+
   it('途中の行を飛ばしても時間切れとして数える', () => {
     const g = new Game(chart);
     g.update(12);

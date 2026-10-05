@@ -60,7 +60,10 @@ export function showPlay(root: HTMLElement, chart: Chart, onExit: () => void): v
     }
     next.textContent = game.nextLine ? `次: ${game.nextLine.lyric}` : '';
     stats.textContent = `打鍵 ${game.keys}  ミス ${game.misses}`;
-    skipHint.textContent = started && game.skipTarget(t) !== null ? 'Enter で次の歌詞まで飛ばす' : '';
+    const hints: string[] = [];
+    if (started && game.skipTarget(t) !== null) hints.push('Enter で次の歌詞へ');
+    if (started && game.backTarget() !== null) hints.push('Backspace で前の歌詞へ戻る');
+    skipHint.textContent = hints.join('  /  ');
   };
 
   const finish = () => {
@@ -102,6 +105,17 @@ export function showPlay(root: HTMLElement, chart: Chart, onExit: () => void): v
       if (target !== null) {
         clock.seek(target);
         game.update(target);
+        render(target);
+      }
+      return;
+    }
+    if (e.key === 'Backspace') {
+      // Enter の逆。打ち終えたあとや間奏中なら、1つ前の打つ行の少し前まで戻して打ち直せるようにする
+      e.preventDefault();
+      const target = game.backTarget();
+      if (target !== null) {
+        clock.seek(target);
+        game.rewind(target);
         render(target);
       }
       return;
