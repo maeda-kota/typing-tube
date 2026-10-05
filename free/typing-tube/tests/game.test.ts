@@ -90,11 +90,21 @@ describe('Game', () => {
     expect(r.clearedLines).toBe(1);
   });
 
-  it('入力中は Backspace で戻らない', () => {
+  it('入力中に Backspace を押すと、今の行の 1 秒前に戻って打ち直せる', () => {
     const g = new Game(chart);
-    g.update(1);
-    g.key('a', 1.2);
-    expect(g.backTarget()).toBeNull();
+    g.update(7.5); // 2 行目 (7 秒開始) を入力中
+    g.key('k', 7.6);
+    g.key('x', 7.7); // ミス
+    expect(g.lineActive).toBe(true);
+    expect(g.backTarget()).toBe(6);
+
+    g.rewind(6);
+    expect(g.keys).toBe(0);
+    expect(g.misses).toBe(0);
+    expect(g.lineActive).toBe(false);
+    g.update(7);
+    expect(g.lineActive).toBe(true);
+    expect(g.key('k', 7.1)).toBe('ok'); // 2 行目を最初から打てる
   });
 
   it('途中の行を飛ばしても時間切れとして数える', () => {

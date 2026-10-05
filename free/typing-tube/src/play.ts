@@ -62,7 +62,9 @@ export function showPlay(root: HTMLElement, chart: Chart, onExit: () => void): v
     stats.textContent = `打鍵 ${game.keys}  ミス ${game.misses}`;
     const hints: string[] = [];
     if (started && game.skipTarget(t) !== null) hints.push('Enter で次の歌詞へ');
-    if (started && game.backTarget() !== null) hints.push('Backspace で前の歌詞へ戻る');
+    if (started && game.backTarget() !== null) {
+      hints.push(game.lineActive ? 'Backspace でこの歌詞をやり直す' : 'Backspace で前の歌詞へ戻る');
+    }
     skipHint.textContent = hints.join('  /  ');
   };
 

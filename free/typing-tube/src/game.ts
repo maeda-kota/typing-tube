@@ -100,9 +100,8 @@ export class Game {
   }
 
   // Backspace で戻る先の時刻。Enter の逆で、次に打つ行の1つ前の打つ行の開始 lead 秒前に戻る。
-  // 打ち終えた行のあとなら、その行をやり直す位置になる。入力中の行があるとき、戻る行がないときは null。
+  // 入力中や打ち終えた直後なら、今の行をやり直す位置になる。戻る行がないときは null。
   backTarget(lead = SKIP_LEAD_SECONDS): number | null {
-    if (this.lineActive) return null;
     const next = this.nextIndex();
     const before = next < 0 ? this.lines.length : next;
     for (let i = before - 1; i >= 0; i--) {
